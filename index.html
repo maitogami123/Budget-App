@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./assets/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>    
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;700;900&display=swap" rel="stylesheet">
+    <title>Smol Budget App</title>
+</head>
+<body>
+    
+    <div class="app">
+        <header class="app__header">
+            <h1 class="app__header-heading">Total Budget</h1>
+            <p class="app__header-total">Calculating...</p>
+        </header>
+        <section class="slider">
+            <div class="slider__header-wrapper">
+                <h1 class="slider__header-heading">Category</h1>
+                <button class="slider__btn-left ">Previous</button>
+                <button class="slider__btn-right">Next</button>
+            </div>
+            <div class="slider__budget-type-wrapper">
+                <div class="slider__budget-type">
+                    <!-- Budget type -->
+                </div>
+            </div>
+        </section>
+        <section class="budget-details">
+            <div class="budget-income">
+                <h2 class="budget-income__heading">Income</h2>
+                <ul class="budget-income__list">
+                    <!-- Income list -->
+                </ul>
+            </div>
+            <div class="budget-cost">
+                <h2 class="budget-cost__heading">Cost</h2>
+                <ul class="budget-cost__list">
+                    <!-- Cost list -->
+                </ul>
+            </div>
+        </section>
+    </div>
+    <div class="modal-add-wrapper hidden">
+        <div class="modal-add">
+            <h3 class="modal-add__heading" id="modal-add__heading">Create new: gift</h3>
+            <div class="modal-add__input">
+                <input type="text" id="input-money" placeholder="How much money will it be?">
+                <input type="text" id="input-heading" placeholder="header">
+            </div>
+            <textarea name="" id="" cols="30" rows="10" class="input-description" placeholder="description"></textarea>
+            <h3 class="modal-add__heading">Choose type:</h3>
+            <div>
+                <input type="radio" name="type" id="income" value="income">
+                <label for="income">Is this your income?</label>
+            </div>
+            <div >
+                <input type="radio" name="type" id="cost" value="cost">
+                <label for="cost">Is this your cost?</label>
+            </div>
+            <div class="button-wrapper">
+                <button class="cancel-btn">Cancel</button>
+                <button class="confirm-btn">Create</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-category-wrapper hidden">
+        <div class="modal-add">
+            <h3 class="modal-add__heading">Create new category</h3>
+            <div class="modal-add__input">
+                <input type="text" id="input-category-name" placeholder="Category name">
+                <input type="file" id="input-img" placeholder="select img">
+            </div>
+            <div class="button-wrapper">
+                <button class="cancel-btn cancel-category" >Cancel</button>
+                <button class="confirm-btn create-category">Create</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-details-wrapper hidden">
+        <div class="modal-details">
+            <div class="modal-details__heading">
+                <span class="total-money">
+                    Caculating...
+                </span>
+            </div>
+            <ul class="modal-details__list">
+                <!-- Item... -->
+            </ul>
+            <button class="close-btn">Close!</button>
+        </div>
+    </div>
+    <script src="./render.js"></script>
+    <script type="module" src="./main.js"></script>
+</body>
+</html>
