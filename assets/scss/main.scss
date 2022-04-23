@@ -325,7 +325,8 @@ body {
     border-radius: 20px;
     display: flex;
     flex-direction: column;
-    padding: 30px;
+    padding: 30px 50px;
+    overflow: hidden;   
     &__heading {
         text-align: center;
         border-bottom: 1px solid rgba(0, 0, 0, 0.2);
@@ -333,6 +334,33 @@ body {
         margin-bottom: 20px;
     }
    
+}
+
+.modal-pagination__left, .modal-pagination__right {
+    cursor: pointer;
+    padding: 10px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease;
+    &:hover {
+        background-color: #ccc;
+    }
+    &.disabled {
+        display: none;
+    }
+}
+
+.modal-pagination__left {
+    position: absolute;
+    left: 0;
+    top: 0%;
+}
+
+.modal-pagination__right {
+    position: absolute;
+    right: 0;
+    top: 0%;
 }
 
 .total-money {
@@ -345,9 +373,22 @@ body {
     margin-right: 12px;
 }
 
+.modal-details__pagination {
+    overflow: hidden;
+}
+
 .modal-details__list {
     list-style: none;
+    display: flex;
+    height: 300px;
+    flex-wrap: wrap;
+    flex-direction: column;
+    transition: all 0.2s ease;
+    transform: translateX(var(--transformValue));
+    width: var(--widthValue);
 }
+
+
 
 .budget-item {
     display: flex;
@@ -390,3 +431,6 @@ body {
     color: #03b4ea;
     font-style: italic;
 }
+
+
+

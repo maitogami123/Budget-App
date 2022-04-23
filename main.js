@@ -44,12 +44,17 @@ function handleChangeCategory() {
   const nextBtn = document.querySelector('.slider__btn-right');
   const newNextBtn = nextBtn.cloneNode(true);
   nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
-  let transformMax = Math.floor((document.querySelectorAll('.budget-type__item').length + 1) / 5) * 100;
+  let transformMax = Math.ceil((document.querySelectorAll('.budget-type__item').length + 1) / 5) * 100 - 100;
+  console.log(transformMax)
   if (currentTransform <= -transformMax) {
     newNextBtn.disabled = true;
+  } else {
+    newNextBtn.disabled = false;
   }
   if (currentTransform == 0) {
     newPrevBtn.disabled = true;
+  } else {
+    newPrevBtn.disabled = false;
   }
   newNextBtn.addEventListener('click', () => {
     currentTransform -= 100;
@@ -144,11 +149,12 @@ function handleRenderCategory() {
     document.querySelectorAll('.delete-category').forEach(item => {
       item.addEventListener('click', (e) => {
         e.stopPropagation();
-        confirm('Delete this type ?')
+        if (confirm('Delete this type ?')) {
           const db = getDatabase();
           const categoryRef = ref(db,`category/${e.target.id}`)
           set(categoryRef, null)
           handleRenderCategory();
+        }
       })
     })
   })
@@ -234,13 +240,14 @@ function renderBudgetItemList() {
       document.querySelectorAll('.budget-income__item-delete').forEach( element => {
         element.addEventListener('click', (e) => {
           e.stopPropagation();
-          confirm('Delete this list?')
+          if (confirm('Delete this list?')) {
             const db = getDatabase();
             const categoryRef = ref(db,`income/${e.target.id}`)
             set(categoryRef, null)
             renderBudgetItemList()
             totalBudget();
-          })
+          }
+        })
       })
       // details
       let budgetIncomeList = document.querySelectorAll('.budget-income__item')
@@ -257,7 +264,7 @@ function renderBudgetItemList() {
               total += parseInt(snapshot.val()[item].money);
               // <img src="./assets/img/bin.jpg" class = "delete-budget-item" alt=""  id="${item}">
               let html = `
-                <li class="budget-item">
+              <li class="budget-item">
                   <div class="income-item__img">
                       <img src="${categoryImgPath.length > 0 ? categoryImgPath[0].imgPath : './assets/img/unavailable.png'}" alt="">
                   </div>
@@ -281,6 +288,38 @@ function renderBudgetItemList() {
               </span> ${budgetIncome.id} income
             `
             document.querySelector('.modal-details__list').innerHTML = htmls.join('')
+            document.querySelector('.modal-details__list').style.setProperty('--transformValue', `0%`)
+            document.querySelector('.modal-details__list').style.setProperty('--widthValue', `${Math.ceil(htmls.length / 3) * 100 > 0 ? Math.ceil(htmls.length / 3) * 100 : 100}%`)
+            let currentTransform = 0;
+            let maxWidth = 100;
+            let step = 100/Math.ceil(htmls.length / 3);
+            const prevPagination = document.querySelector('.modal-pagination__left')
+            const nextPagination = document.querySelector('.modal-pagination__right')
+            if (currentTransform == 0)
+              prevPagination.classList.add('disabled')
+            else 
+              prevPagination.classList.remove('disabled')
+
+            if (currentTransform == -maxWidth + (Math.ceil(htmls.length / 3) * 100))
+              nextPagination.classList.add('disabled')
+            else
+              nextPagination.classList.remove('disabled')
+            nextPagination.onclick = (e) => {
+              currentTransform -= step;
+              document.querySelector('.modal-details__list').style.setProperty('--transformValue', `${currentTransform}%`)
+              if (currentTransform < 0)
+                prevPagination.classList.remove('disabled')
+              if (currentTransform <= -maxWidth + step)
+                nextPagination.classList.add('disabled')
+            }
+            prevPagination.onclick = (e) => {
+              currentTransform += step;
+              document.querySelector('.modal-details__list').style.setProperty('--transformValue', `${currentTransform}%`)
+              if (currentTransform >= -maxWidth)
+                nextPagination.classList.remove('disabled')
+              if (currentTransform == 0)
+                prevPagination.classList.add('disabled')
+            }
           })
         })
       })
@@ -318,13 +357,14 @@ function renderBudgetItemList() {
       document.querySelectorAll('.budget-cost__item-delete').forEach( element => {
         element.addEventListener('click', (e) => {
           e.stopPropagation();
-          confirm('Delete this list?')
+          if (confirm('Delete this list?')) {
             const db = getDatabase();
             const categoryRef = ref(db,`cost/${e.target.id}`)
             set(categoryRef, null)
             renderBudgetItemList()
             totalBudget();
-          })
+          }
+        })
       })
 
       let budgetCostList = document.querySelectorAll('.budget-cost__item')
@@ -339,9 +379,10 @@ function renderBudgetItemList() {
             for (let item in snapshot.val()) {
               let categoryImgPath = categoryList.filter(e => e.type === budgetCost.id)
               total += parseInt(snapshot.val()[item].money);
+              // <img src="./assets/img/bin.jpg" class = "delete-budget-item" alt=""  id="${item}">
               let html = `
                 <li class="budget-item">
-                  <div class="income-item__img">
+                  <div class="cost-item__img">
                       <img src="${categoryImgPath.length > 0 ? categoryImgPath[0].imgPath : './assets/img/unavailable.png'}" alt="">
                   </div>
                   <div class="budget-content">
@@ -364,6 +405,38 @@ function renderBudgetItemList() {
               </span> ${budgetCost.id} cost
             `
             document.querySelector('.modal-details__list').innerHTML = htmls.join('')
+            document.querySelector('.modal-details__list').style.setProperty('--transformValue', `0%`)
+            document.querySelector('.modal-details__list').style.setProperty('--widthValue', `${Math.ceil(htmls.length / 3) * 100 > 0 ? Math.ceil(htmls.length / 3) * 100 : 100}%`)
+            let currentTransform = 0;
+            let maxWidth = 100;
+            let step = 100/Math.ceil(htmls.length / 3);
+            const prevPagination = document.querySelector('.modal-pagination__left')
+            const nextPagination = document.querySelector('.modal-pagination__right')
+            if (currentTransform == 0)
+              prevPagination.classList.add('disabled')
+            else 
+              prevPagination.classList.remove('disabled')
+
+            if (currentTransform == -maxWidth + (Math.ceil(htmls.length / 3) * 100))
+              nextPagination.classList.add('disabled')
+            else
+              nextPagination.classList.remove('disabled')
+            nextPagination.onclick = (e) => {
+              currentTransform -= step;
+              document.querySelector('.modal-details__list').style.setProperty('--transformValue', `${currentTransform}%`)
+              if (currentTransform < 0)
+                prevPagination.classList.remove('disabled')
+              if (currentTransform <= -maxWidth + step)
+                nextPagination.classList.add('disabled')
+            }
+            prevPagination.onclick = (e) => {
+              currentTransform += step;
+              document.querySelector('.modal-details__list').style.setProperty('--transformValue', `${currentTransform}%`)
+              if (currentTransform >= -maxWidth)
+                nextPagination.classList.remove('disabled')
+              if (currentTransform == 0)
+                prevPagination.classList.add('disabled')
+            }
           })
         })
       })
