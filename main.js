@@ -36,28 +36,34 @@ function addBudget(budgetType, incomeType, head, description, money) {
 
 // writeUserData('income', 'salary', 'monthly salary', 'october salary', 10000)
 
+let currentTransform = 0;
 function handleChangeCategory() {
   const prevBtn = document.querySelector('.slider__btn-left');
+  const newPrevBtn = prevBtn.cloneNode(true);
+  prevBtn.parentNode.replaceChild(newPrevBtn, prevBtn);
   const nextBtn = document.querySelector('.slider__btn-right');
+  const newNextBtn = nextBtn.cloneNode(true);
+  nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
   let transformMax = Math.floor((document.querySelectorAll('.budget-type__item').length + 1) / 5) * 100;
-  let currentTransform = 0;
-  if (currentTransform <= -transformMax)
-    nextBtn.disabled = true;
-  if (currentTransform == 0)
-    prevBtn.disabled = true;
-  nextBtn.addEventListener('click', () => {
+  if (currentTransform <= -transformMax) {
+    newNextBtn.disabled = true;
+  }
+  if (currentTransform == 0) {
+    newPrevBtn.disabled = true;
+  }
+  newNextBtn.addEventListener('click', () => {
     currentTransform -= 100;
     document.querySelector('.slider__budget-type').style.transform = `translateX(${currentTransform}%)`
-    prevBtn.disabled = false;
+    newPrevBtn.disabled = false;
     if (currentTransform <= -transformMax)
-      nextBtn.disabled = true;
+      newNextBtn.disabled = true;
   })
-  prevBtn.addEventListener('click', () => {
+  newPrevBtn.addEventListener('click', () => {
     currentTransform += 100;
     document.querySelector('.slider__budget-type').style.transform = `translateX(${currentTransform}%)`
-    nextBtn.disabled = false;
+    newNextBtn.disabled = false;
     if (currentTransform == 0)
-      prevBtn.disabled = true;
+      newPrevBtn.disabled = true;
   })
 }
 
@@ -138,10 +144,11 @@ function handleRenderCategory() {
     document.querySelectorAll('.delete-category').forEach(item => {
       item.addEventListener('click', (e) => {
         e.stopPropagation();
-        const db = getDatabase();
-        const categoryRef = ref(db,`category/${e.target.id}`)
-        set(categoryRef, null)
-        handleRenderCategory()
+        confirm('Delete this type ?')
+          const db = getDatabase();
+          const categoryRef = ref(db,`category/${e.target.id}`)
+          set(categoryRef, null)
+          handleRenderCategory();
       })
     })
   })
@@ -175,6 +182,7 @@ document.querySelector('.confirm-btn').addEventListener('click', () => {
   document.querySelector('.input-description').value = '';
   document.querySelector('input[name="type"]:checked').checked = false
   totalBudget();
+  renderBudgetItemList();
 })
 
 document.querySelector('.cancel-btn').addEventListener('click', () => {
@@ -207,6 +215,7 @@ function renderBudgetItemList() {
         let categoryImgPath = categoryList.filter(e => e.type === category)
         let html = `
           <li class="budget-income__item" id ="${category}">
+              <img src="./assets/img/bin.jpg" class = "budget-income__item-delete" alt=""  id="${category}">
               <div class="income-item__img">
                   <img src="${categoryImgPath.length > 0 ? categoryImgPath[0].imgPath : './assets/img/unavailable.png'}" alt="">
               </div>
@@ -222,6 +231,17 @@ function renderBudgetItemList() {
         htmls.push(html)
       }
       document.querySelector('.budget-income__list').innerHTML = htmls.join('')
+      document.querySelectorAll('.budget-income__item-delete').forEach( element => {
+        element.addEventListener('click', (e) => {
+          e.stopPropagation();
+          confirm('Delete this list?')
+            const db = getDatabase();
+            const categoryRef = ref(db,`income/${e.target.id}`)
+            set(categoryRef, null)
+            renderBudgetItemList()
+            totalBudget();
+          })
+      })
       // details
       let budgetIncomeList = document.querySelectorAll('.budget-income__item')
       budgetIncomeList.forEach((budgetIncome) => {
@@ -235,6 +255,7 @@ function renderBudgetItemList() {
             for (let item in snapshot.val()) {
               let categoryImgPath = categoryList.filter(e => e.type === budgetIncome.id)
               total += parseInt(snapshot.val()[item].money);
+              // <img src="./assets/img/bin.jpg" class = "delete-budget-item" alt=""  id="${item}">
               let html = `
                 <li class="budget-item">
                   <div class="income-item__img">
@@ -277,6 +298,7 @@ function renderBudgetItemList() {
         let categoryImgPath = categoryList.filter(e => e.type === category)
         let html = `
           <li class="budget-cost__item" id = "${category}">
+              <img src="./assets/img/bin.jpg" class = "budget-cost__item-delete" alt=""  id="${category}">
               <div class="cost-item__img">
                   <img src="${categoryImgPath.length > 0 ? categoryImgPath[0].imgPath : './assets/img/unavailable.png'}" alt="">
               </div>
@@ -292,6 +314,19 @@ function renderBudgetItemList() {
         htmls.push(html)
       }
       document.querySelector('.budget-cost__list').innerHTML = htmls.join('')
+
+      document.querySelectorAll('.budget-cost__item-delete').forEach( element => {
+        element.addEventListener('click', (e) => {
+          e.stopPropagation();
+          confirm('Delete this list?')
+            const db = getDatabase();
+            const categoryRef = ref(db,`cost/${e.target.id}`)
+            set(categoryRef, null)
+            renderBudgetItemList()
+            totalBudget();
+          })
+      })
+
       let budgetCostList = document.querySelectorAll('.budget-cost__item')
       budgetCostList.forEach((budgetCost) => {
         budgetCost.addEventListener('click', (e) => {

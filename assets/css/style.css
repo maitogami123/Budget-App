@@ -56,7 +56,6 @@ body {
 
 .slider__budget-type {
   display: flex;
-  gap: 50px;
   transition: all 0.2s ease;
 }
 .slider__budget-type::-webkit-scrollbar {
@@ -75,6 +74,12 @@ body {
   align-items: center;
   cursor: pointer;
   position: relative;
+}
+.budget-type__item:not(:nth-child(5n)) {
+  margin-right: 50px;
+}
+.budget-type__item:nth-child(5n) {
+  margin-left: 10px;
 }
 .budget-type__item:hover > .delete-category {
   display: block;
@@ -159,6 +164,18 @@ body {
   align-items: center;
   gap: 10px;
   cursor: pointer;
+  position: relative;
+}
+.budget-income__item:hover > .budget-income__item-delete, .budget-income__item:hover > .budget-cost__item-delete, .budget-cost__item:hover > .budget-income__item-delete, .budget-cost__item:hover > .budget-cost__item-delete {
+  display: block;
+}
+.budget-income__item-delete, .budget-cost__item-delete {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: -10%;
+  left: -2%;
+  display: none;
 }
 
 .income-item__img {
@@ -331,6 +348,19 @@ body {
   gap: 30px;
   align-items: center;
   margin-bottom: 20px;
+  position: relative;
+}
+.budget-item:hover > .delete-budget-item {
+  display: block;
+}
+
+.delete-budget-item {
+  position: absolute;
+  display: none;
+  width: 20px;
+  height: 20px;
+  top: -10%;
+  left: -2%;
 }
 
 .budget-content {
