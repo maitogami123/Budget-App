@@ -19,57 +19,12 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase();
-
-function addBudget(budgetType, incomeType, head, description, money) {
-  const budgetListRef = ref(db, `${budgetType}/${incomeType}`);
-  const budgetRef = push(budgetListRef);
-  let date = new Date();
-  let options = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' };
-
-  set(budgetRef, {
-    head: head,
-    description: description,
-    money: money,
-    date: date.toLocaleDateString('vn-VN', options),
-  })
-}
-
-// writeUserData('income', 'salary', 'monthly salary', 'october salary', 10000)
-
 let currentTransform = 0;
-function handleChangeCategory() {
-  const prevBtn = document.querySelector('.slider__btn-left');
-  const newPrevBtn = prevBtn.cloneNode(true);
-  prevBtn.parentNode.replaceChild(newPrevBtn, prevBtn);
-  const nextBtn = document.querySelector('.slider__btn-right');
-  const newNextBtn = nextBtn.cloneNode(true);
-  nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
-  let transformMax = Math.ceil((document.querySelectorAll('.budget-type__item').length + 1) / 5) * 100 - 100;
-  console.log(transformMax)
-  if (currentTransform <= -transformMax) {
-    newNextBtn.disabled = true;
-  } else {
-    newNextBtn.disabled = false;
-  }
-  if (currentTransform == 0) {
-    newPrevBtn.disabled = true;
-  } else {
-    newPrevBtn.disabled = false;
-  }
-  newNextBtn.addEventListener('click', () => {
-    currentTransform -= 100;
-    document.querySelector('.slider__budget-type').style.transform = `translateX(${currentTransform}%)`
-    newPrevBtn.disabled = false;
-    if (currentTransform <= -transformMax)
-      newNextBtn.disabled = true;
-  })
-  newPrevBtn.addEventListener('click', () => {
-    currentTransform += 100;
-    document.querySelector('.slider__budget-type').style.transform = `translateX(${currentTransform}%)`
-    newNextBtn.disabled = false;
-    if (currentTransform == 0)
-      newPrevBtn.disabled = true;
-  })
+
+window.onload = () => {
+  renderBudgetItemList()
+  handleRenderCategory()
+  totalBudget();
 }
 
 function totalBudget() {
@@ -160,46 +115,6 @@ function handleRenderCategory() {
   })
 }
 
-function addCategory(type, imgPath) {
-  const categoryListRef = ref(db, 'category')
-  const categoryRef = push(categoryListRef);
-  let truePath = "./assets/img/" + imgPath.value.substring(imgPath.value.lastIndexOf('\\') + 1);
-  set(categoryRef, {
-    type: type.value,
-    imgPath: truePath,
-  })
-  .then(() => {
-    type.value = '';
-    imgPath.value = ''
-  })
-  handleRenderCategory()
-}
-
-document.querySelector('.confirm-btn').addEventListener('click', () => {
-  let budgetType = document.querySelector('input[name="type"]:checked').value;
-  let incomeType = document.querySelector('#modal-add__heading').innerText.substring(document.querySelector('#modal-add__heading').innerText.lastIndexOf(' ') + 1)
-  let head = document.querySelector('#input-heading').value;
-  let description = document.querySelector('.input-description').value;
-  let money = document.querySelector('#input-money').value;
-  addBudget(budgetType, incomeType, head, description, money);
-  document.querySelector('#modal-add__heading').innerText.substring(document.querySelector('#modal-add__heading').innerText.lastIndexOf(' ') + 1)
-  document.querySelector('#input-heading').value = '';
-  document.querySelector('#input-money').value = '';
-  document.querySelector('.input-description').value = '';
-  document.querySelector('input[name="type"]:checked').checked = false
-  totalBudget();
-  renderBudgetItemList();
-})
-
-document.querySelector('.cancel-btn').addEventListener('click', () => {
-  document.querySelector('.modal-add-wrapper').classList.add('hidden');
-})
-
-window.onload = () => {
-  handleRenderCategory()
-  totalBudget();
-}
-
 function renderBudgetItemList() {
   const db = ref(getDatabase())
   get(child(db, 'category'))
@@ -210,33 +125,7 @@ function renderBudgetItemList() {
     }
     get(child(db, 'income'))
     .then((incomeSnapshot) => {
-      let htmls = [];
-      for (let category in incomeSnapshot.val()) {
-        let totalCategoryBudget = 0;
-        let date;
-        for (let item in incomeSnapshot.val()[category]) {
-          totalCategoryBudget += parseInt(incomeSnapshot.val()[category][item].money);
-          date = incomeSnapshot.val()[category][item].date;
-        }
-        let categoryImgPath = categoryList.filter(e => e.type === category)
-        let html = `
-          <li class="budget-income__item" id ="${category}">
-              <img src="./assets/img/bin.jpg" class = "budget-income__item-delete" alt=""  id="${category}">
-              <div class="income-item__img">
-                  <img src="${categoryImgPath.length > 0 ? categoryImgPath[0].imgPath : './assets/img/unavailable.png'}" alt="">
-              </div>
-              <div class="income-item__details">
-                  <h4 class="income-item__heading">
-                      ${category} Income
-                  </h4>
-                  <p class="income-item__money">$${totalCategoryBudget}</p>
-                  <p class="income-item__create-date">Create at: ${date}</p>
-              </div>
-          </li>
-        `
-        htmls.push(html)
-      }
-      document.querySelector('.budget-income__list').innerHTML = htmls.join('')
+      handleRenderBudgetList(incomeSnapshot, categoryList, 'income')
       document.querySelectorAll('.budget-income__item-delete').forEach( element => {
         element.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -249,111 +138,22 @@ function renderBudgetItemList() {
           }
         })
       })
-      // details
+
       let budgetIncomeList = document.querySelectorAll('.budget-income__item')
       budgetIncomeList.forEach((budgetIncome) => {
         budgetIncome.addEventListener('click', (e) => {
           document.querySelector('.modal-details-wrapper').classList.remove('hidden')
           let db = ref(getDatabase())
-          let htmls = []
           get(child(db, 'income/' + budgetIncome.id))
           .then(snapshot => {
-            let total = 0;
-            for (let item in snapshot.val()) {
-              let categoryImgPath = categoryList.filter(e => e.type === budgetIncome.id)
-              total += parseInt(snapshot.val()[item].money);
-              // <img src="./assets/img/bin.jpg" class = "delete-budget-item" alt=""  id="${item}">
-              let html = `
-              <li class="budget-item">
-                  <div class="income-item__img">
-                      <img src="${categoryImgPath.length > 0 ? categoryImgPath[0].imgPath : './assets/img/unavailable.png'}" alt="">
-                  </div>
-                  <div class="budget-content">
-                      <div class="budget-heading">
-                          <span class="budget-name">${snapshot.val()[item].head}:</span>
-                          <span class="budget-money">
-                              ${snapshot.val()[item].money}
-                          </span> 
-                      </div>
-                      <p class="budget-description">${snapshot.val()[item].description}</p>
-                      <p class="budget-create-date">${snapshot.val()[item].date}</p>
-                  </div>
-                </li>
-              `
-              htmls.push(html)
-            }
-            document.querySelector('.modal-details__heading').innerHTML = `
-              <span class="total-money">
-                  $${total}
-              </span> ${budgetIncome.id} income
-            `
-            document.querySelector('.modal-details__list').innerHTML = htmls.join('')
-            document.querySelector('.modal-details__list').style.setProperty('--transformValue', `0%`)
-            document.querySelector('.modal-details__list').style.setProperty('--widthValue', `${Math.ceil(htmls.length / 3) * 100 > 0 ? Math.ceil(htmls.length / 3) * 100 : 100}%`)
-            let currentTransform = 0;
-            let maxWidth = 100;
-            let step = 100/Math.ceil(htmls.length / 3);
-            const prevPagination = document.querySelector('.modal-pagination__left')
-            const nextPagination = document.querySelector('.modal-pagination__right')
-            if (currentTransform == 0)
-              prevPagination.classList.add('disabled')
-            else 
-              prevPagination.classList.remove('disabled')
-
-            if (currentTransform == -maxWidth + (Math.ceil(htmls.length / 3) * 100))
-              nextPagination.classList.add('disabled')
-            else
-              nextPagination.classList.remove('disabled')
-            nextPagination.onclick = (e) => {
-              currentTransform -= step;
-              document.querySelector('.modal-details__list').style.setProperty('--transformValue', `${currentTransform}%`)
-              if (currentTransform < 0)
-                prevPagination.classList.remove('disabled')
-              if (currentTransform <= -maxWidth + step)
-                nextPagination.classList.add('disabled')
-            }
-            prevPagination.onclick = (e) => {
-              currentTransform += step;
-              document.querySelector('.modal-details__list').style.setProperty('--transformValue', `${currentTransform}%`)
-              if (currentTransform >= -maxWidth)
-                nextPagination.classList.remove('disabled')
-              if (currentTransform == 0)
-                prevPagination.classList.add('disabled')
-            }
+            handleRenderBudgetItemList(snapshot, 'income', categoryList, budgetIncome)
           })
         })
       })
     })
     get(child(db, 'cost'))
     .then((costSnapshot) => {
-      let htmls = [];
-      for (let category in costSnapshot.val()) {
-        let totalCategoryBudget = 0;
-        let date;
-        for (let item in costSnapshot.val()[category]) {
-          totalCategoryBudget += parseInt(costSnapshot.val()[category][item].money);
-          date = costSnapshot.val()[category][item].date;
-        }
-        let categoryImgPath = categoryList.filter(e => e.type === category)
-        let html = `
-          <li class="budget-cost__item" id = "${category}">
-              <img src="./assets/img/bin.jpg" class = "budget-cost__item-delete" alt=""  id="${category}">
-              <div class="cost-item__img">
-                  <img src="${categoryImgPath.length > 0 ? categoryImgPath[0].imgPath : './assets/img/unavailable.png'}" alt="">
-              </div>
-              <div class="cost-item__details">
-                  <h4 class="cost-item__heading">
-                      ${category} cost
-                  </h4>
-                  <p class="cost-item__money">$${totalCategoryBudget}</p>
-                  <p class="cost-item__create-date">${date}</p>
-              </div>
-          </li>
-        `
-        htmls.push(html)
-      }
-      document.querySelector('.budget-cost__list').innerHTML = htmls.join('')
-
+      handleRenderBudgetList(costSnapshot, categoryList, 'cost')
       document.querySelectorAll('.budget-cost__item-delete').forEach( element => {
         element.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -372,71 +172,9 @@ function renderBudgetItemList() {
         budgetCost.addEventListener('click', (e) => {
           document.querySelector('.modal-details-wrapper').classList.remove('hidden')
           let db = ref(getDatabase())
-          let htmls = []
           get(child(db, 'cost/' + budgetCost.id))
           .then(snapshot => {
-            let total = 0;
-            for (let item in snapshot.val()) {
-              let categoryImgPath = categoryList.filter(e => e.type === budgetCost.id)
-              total += parseInt(snapshot.val()[item].money);
-              // <img src="./assets/img/bin.jpg" class = "delete-budget-item" alt=""  id="${item}">
-              let html = `
-                <li class="budget-item">
-                  <div class="cost-item__img">
-                      <img src="${categoryImgPath.length > 0 ? categoryImgPath[0].imgPath : './assets/img/unavailable.png'}" alt="">
-                  </div>
-                  <div class="budget-content">
-                      <div class="budget-heading">
-                          <span class="budget-name">${snapshot.val()[item].head}:</span>
-                          <span class="budget-money">
-                              ${snapshot.val()[item].money}
-                          </span> 
-                      </div>
-                      <p class="budget-description">${snapshot.val()[item].description}</p>
-                      <p class="budget-create-date">${snapshot.val()[item].date}</p>
-                  </div>
-                </li>
-              `
-              htmls.push(html)
-            }
-            document.querySelector('.modal-details__heading').innerHTML = `
-              <span class="total-money">
-                  $${total}
-              </span> ${budgetCost.id} cost
-            `
-            document.querySelector('.modal-details__list').innerHTML = htmls.join('')
-            document.querySelector('.modal-details__list').style.setProperty('--transformValue', `0%`)
-            document.querySelector('.modal-details__list').style.setProperty('--widthValue', `${Math.ceil(htmls.length / 3) * 100 > 0 ? Math.ceil(htmls.length / 3) * 100 : 100}%`)
-            let currentTransform = 0;
-            let maxWidth = 100;
-            let step = 100/Math.ceil(htmls.length / 3);
-            const prevPagination = document.querySelector('.modal-pagination__left')
-            const nextPagination = document.querySelector('.modal-pagination__right')
-            if (currentTransform == 0)
-              prevPagination.classList.add('disabled')
-            else 
-              prevPagination.classList.remove('disabled')
-
-            if (currentTransform == -maxWidth + (Math.ceil(htmls.length / 3) * 100))
-              nextPagination.classList.add('disabled')
-            else
-              nextPagination.classList.remove('disabled')
-            nextPagination.onclick = (e) => {
-              currentTransform -= step;
-              document.querySelector('.modal-details__list').style.setProperty('--transformValue', `${currentTransform}%`)
-              if (currentTransform < 0)
-                prevPagination.classList.remove('disabled')
-              if (currentTransform <= -maxWidth + step)
-                nextPagination.classList.add('disabled')
-            }
-            prevPagination.onclick = (e) => {
-              currentTransform += step;
-              document.querySelector('.modal-details__list').style.setProperty('--transformValue', `${currentTransform}%`)
-              if (currentTransform >= -maxWidth)
-                nextPagination.classList.remove('disabled')
-              if (currentTransform == 0)
-                prevPagination.classList.add('disabled')
-            }
+            handleRenderBudgetItemList(snapshot, 'cost', categoryList, budgetCost)
           })
         })
       })
@@ -444,8 +182,204 @@ function renderBudgetItemList() {
   })
 }
 
+function handleRenderBudgetList(snapshot, categoryList, budgetType) {
+  let htmls = [];
+  for (let category in snapshot.val()) {
+    let totalCategoryBudget = 0;
+    let date;
+    for (let item in snapshot.val()[category]) {
+      totalCategoryBudget += parseInt(snapshot.val()[category][item].money);
+      date = snapshot.val()[category][item].date;
+    }
+    let categoryImgPath = categoryList.filter(e => e.type === category)
+    let html = `
+      <li class="budget-${budgetType}__item" id = "${category}">
+          <img src="./assets/img/bin.jpg" class = "budget-${budgetType}__item-delete" alt=""  id="${category}">
+          <div class="${budgetType}-item__img">
+              <img src="${categoryImgPath.length > 0 ? categoryImgPath[0].imgPath : './assets/img/unavailable.png'}" alt="">
+          </div>
+          <div class="${budgetType}-item__details">
+              <h4 class="${budgetType}-item__heading">
+                  ${category} ${budgetType}
+              </h4>
+              <p class="${budgetType}-item__money">$${totalCategoryBudget}</p>
+              <p class="${budgetType}-item__create-date">${date}</p>
+          </div>
+      </li>
+    `
+    htmls.push(html)
+  }
+  document.querySelector(`.budget-${budgetType}__list`).innerHTML = htmls.join('')
+}
+
+function handleRenderBudgetItemList(snapshot, budgetType, categoryList, budgetItem) {
+  let htmls = [];
+  let total = 0;
+  for (let item in snapshot.val()) {
+    let categoryImgPath = categoryList.filter(e => e.type === budgetItem.id)
+    total += parseInt(snapshot.val()[item].money);
+    let html = `
+    <li class="budget-item">
+        <div class="${budgetType}-item__img">
+            <img src="${categoryImgPath.length > 0 ? categoryImgPath[0].imgPath : './assets/img/unavailable.png'}" alt="">
+        </div>
+        <div class="budget-content">
+            <div class="budget-heading">
+                <span class="budget-name">${snapshot.val()[item].head}:</span>
+                <span class="budget-money">
+                    ${snapshot.val()[item].money}
+                </span> 
+            </div>
+            <p class="budget-description">${snapshot.val()[item].description}</p>
+            <p class="budget-create-date">${snapshot.val()[item].date}</p>
+        </div>
+      </li>
+    `
+    htmls.push(html)
+  }
+  document.querySelector('.modal-details__heading').innerHTML = `
+    <span class="total-money">
+        $${total}
+    </span> ${budgetItem.id}  ${budgetType}
+  `
+  handlePagination(htmls);
+}
+
+function handlePagination(htmls) {
+  document.querySelector('.modal-details__list').innerHTML = htmls.join('')
+  document.querySelector('.modal-details__list').style.setProperty('--transformValue', `0%`)
+  document.querySelector('.modal-details__list').style.setProperty('--widthValue', `${Math.ceil(htmls.length / 3) * 100 > 0 ? Math.ceil(htmls.length / 3) * 100 : 100}%`)
+  let currentTransform = 0;
+  let maxWidth = 100;
+  let step = 100/Math.ceil(htmls.length / 3);
+  const prevPagination = document.querySelector('.modal-pagination__left')
+  const nextPagination = document.querySelector('.modal-pagination__right')
+  if (currentTransform == 0)
+    prevPagination.classList.add('disabled')
+  else 
+    prevPagination.classList.remove('disabled')
+  
+  if (currentTransform == -maxWidth + (Math.ceil(htmls.length / 3) * 100))
+    nextPagination.classList.add('disabled')
+  else
+    nextPagination.classList.remove('disabled')
+  nextPagination.onclick = (e) => {
+    currentTransform -= step;
+    document.querySelector('.modal-details__list').style.setProperty('--transformValue', `${currentTransform}%`)
+    if (currentTransform < 0)
+      prevPagination.classList.remove('disabled')
+    if (currentTransform <= -maxWidth + step)
+      nextPagination.classList.add('disabled')
+  }
+  prevPagination.onclick = (e) => {
+    currentTransform += step;
+    document.querySelector('.modal-details__list').style.setProperty('--transformValue', `${currentTransform}%`)
+    if (currentTransform >= -maxWidth)
+      nextPagination.classList.remove('disabled')
+    if (currentTransform == 0)
+      prevPagination.classList.add('disabled')
+  }
+}
+
+function handleChangeCategory() {
+  const prevBtn = document.querySelector('.slider__btn-left');
+  const newPrevBtn = prevBtn.cloneNode(true);
+  prevBtn.parentNode.replaceChild(newPrevBtn, prevBtn);
+  const nextBtn = document.querySelector('.slider__btn-right');
+  const newNextBtn = nextBtn.cloneNode(true);
+  nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
+  let transformMax = Math.ceil((document.querySelectorAll('.budget-type__item').length + 1) / 5) * 100 - 100;
+  if (currentTransform <= -transformMax) {
+    newNextBtn.disabled = true;
+  } else {
+    newNextBtn.disabled = false;
+  }
+  if (currentTransform == 0) {
+    newPrevBtn.disabled = true;
+  } else {
+    newPrevBtn.disabled = false;
+  }
+  newNextBtn.addEventListener('click', () => {
+    currentTransform -= 100;
+    document.querySelector('.slider__budget-type').style.transform = `translateX(${currentTransform}%)`
+    newPrevBtn.disabled = false;
+    if (currentTransform <= -transformMax)
+      newNextBtn.disabled = true;
+  })
+  newPrevBtn.addEventListener('click', () => {
+    currentTransform += 100;
+    document.querySelector('.slider__budget-type').style.transform = `translateX(${currentTransform}%)`
+    newNextBtn.disabled = false;
+    if (currentTransform == 0)
+      newPrevBtn.disabled = true;
+  })
+}
+
+function addBudget(budgetType, incomeType, head, description, money) {
+  const budgetListRef = ref(db, `${budgetType}/${incomeType}`);
+  const budgetRef = push(budgetListRef);
+  let date = new Date();
+  let options = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' };
+
+  set(budgetRef, {
+    head: head,
+    description: description,
+    money: money,
+    date: date.toLocaleDateString('vn-VN', options),
+  })
+}
+
+function addCategory(type, imgPath) {
+  const categoryListRef = ref(db, 'category')
+  const categoryRef = push(categoryListRef);
+  let truePath = "./assets/img/" + imgPath.value.substring(imgPath.value.lastIndexOf('\\') + 1);
+  if (type.value && imgPath.value) {
+    set(categoryRef, {
+      type: type.value,
+      imgPath: truePath,
+    })
+    .then(() => {
+      type.value = '';
+      imgPath.value = ''
+    })
+    handleRenderCategory()
+  } else {
+    alert('Please fill all category info!')
+  }
+}
+
+document.querySelector('.confirm-btn').addEventListener('click', () => {
+  let budgetType = document.querySelector('input[name="type"]:checked');
+  let incomeType = document.querySelector('#modal-add__heading').innerText.substring(document.querySelector('#modal-add__heading').innerText.lastIndexOf(' ') + 1)
+  let head = document.querySelector('#input-heading');
+  let description = document.querySelector('.input-description');
+  let money = document.querySelector('#input-money');
+  if (validateItem(budgetType) && validateItem(head) && validateItem(description) && validateItem(money)) {
+    addBudget(budgetType.value, incomeType, head.value, description.value, money.value);
+    document.querySelector('#modal-add__heading').innerText.substring(document.querySelector('#modal-add__heading').innerText.lastIndexOf(' ') + 1)
+    document.querySelector('#input-heading').value = '';
+    document.querySelector('#input-money').value = '';
+    document.querySelector('.input-description').value = '';
+    document.querySelector('input[name="type"]:checked').checked = false
+    totalBudget();
+    renderBudgetItemList();
+  } else {
+    alert('Please fill out all infomations!')
+  }
+})
+
+function validateItem(item) {
+  if (item && item.value)
+    return true;
+  return false;
+}
+
+document.querySelector('.cancel-btn').addEventListener('click', () => {
+  document.querySelector('.modal-add-wrapper').classList.add('hidden');
+})
+
 document.querySelector('.close-btn').addEventListener('click', () => {
   document.querySelector('.modal-details-wrapper').classList.add('hidden')
 })
 
-renderBudgetItemList()
+
