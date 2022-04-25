@@ -19,7 +19,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase();
-let currentTransform = 0;
+let currentTransform = 0; //for categoryPagination.
 
 window.onload = () => {
   renderBudgetItemList()
@@ -92,14 +92,16 @@ function handleRenderCategory() {
     `
     document.getElementById('add-category').addEventListener('click', () => {
       document.querySelector('.modal-category-wrapper').classList.remove('hidden')
-      document.querySelector('.cancel-category').addEventListener('click', (e) => {
+      document.querySelector('.cancel-category').onclick = () => {
         document.querySelector('.modal-category-wrapper').classList.add('hidden')
-      })
-      document.querySelector('.create-category').addEventListener('click', (e) => {
+        document.querySelector('#input-category-name').value = '';
+        document.querySelector('#input-img').value = '';
+      }
+      document.querySelector('.create-category').onclick = () => {
         let type = document.querySelector('#input-category-name');
         let imgPath = document.querySelector('#input-img');
         addCategory(type, imgPath);
-      })
+      }
     })
     document.querySelectorAll('.delete-category').forEach(item => {
       item.addEventListener('click', (e) => {
@@ -330,22 +332,37 @@ function addBudget(budgetType, incomeType, head, description, money) {
 }
 
 function addCategory(type, imgPath) {
-  const categoryListRef = ref(db, 'category')
-  const categoryRef = push(categoryListRef);
-  let truePath = "./assets/img/" + imgPath.value.substring(imgPath.value.lastIndexOf('\\') + 1);
-  if (type.value && imgPath.value) {
-    set(categoryRef, {
-      type: type.value,
-      imgPath: truePath,
-    })
-    .then(() => {
-      type.value = '';
-      imgPath.value = ''
-    })
-    handleRenderCategory()
-  } else {
-    alert('Please fill all category info!')
-  }
+  let categoryDb = ref(getDatabase())
+  get(child(categoryDb, 'category'))
+  .then((snapshot) => {
+    for (let item in snapshot.val()) {
+      if (snapshot.val()[item].type.toLowerCase() === type.value.toLowerCase())
+        return true;
+    }
+    return false;
+  })
+  .then((isExists) => {
+    if (isExists) {
+      alert('Budget type already exist, please choose another name for budget type!')
+    } else {
+      const categoryListRef = ref(db, 'category')
+      const categoryRef = push(categoryListRef);
+      let truePath = "./assets/img/" + imgPath.value.substring(imgPath.value.lastIndexOf('\\') + 1);
+      if (type.value && imgPath.value) {
+        set(categoryRef, {
+          type: type.value,
+          imgPath: truePath,
+        })
+        .then(() => {
+          type.value = '';
+          imgPath.value = ''
+        })
+        handleRenderCategory()
+      } else {
+        alert('Please fill all category info!')
+      }
+    }
+  })
 }
 
 document.querySelector('.confirm-btn').addEventListener('click', () => {
