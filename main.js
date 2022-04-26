@@ -20,6 +20,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase();
 let currentTransform = 0; //for categoryPagination.
+const defaultBudgetType = ['salary', 'gift', 'friend', 'invoice', 'shopping', 'others']
 
 window.onload = () => {
   renderBudgetItemList()
@@ -62,13 +63,45 @@ function handleRenderCategory() {
     }
   })
   .then((snapshot) => {
-    let htmls = []
+    let htmls = [`
+      <div class="budget-type__item" onclick="showAddModal('Salary')">
+          <div class="item-img-container">
+              <img src="./assets/img/salary.png" alt="" class="item-img">
+          </div>
+          <h4 class="item-heading">Salary</h4>
+      </div>
+      <div class="budget-type__item" onclick="showAddModal('Gift')">
+          <div class="item-img-container">
+              <img src="./assets/img/gift.png" alt="" class="item-img">
+          </div>
+          <h4 class="item-heading">Gift</h4>
+      </div>
+      <div class="budget-type__item" onclick="showAddModal('Friend')">
+          <div class="item-img-container">
+              <img src="./assets/img/friend.png" alt="" class="item-img">
+          </div>
+          <h4 class="item-heading">Friend</h4>
+      </div>
+      <div class="budget-type__item" onclick="showAddModal('Shopping')">
+          <div class="item-img-container">
+              <img src="./assets/img/shopping.png" alt="" class="item-img">
+          </div>
+          <h4 class="item-heading">Shopping</h4>
+      </div>
+      <div class="budget-type__item" onclick="showAddModal('Invoice')">
+          <div class="item-img-container">
+              <img src="./assets/img/invoice.png" alt="" class="item-img">
+          </div>
+          <h4 class="item-heading">Invoice</h4>
+      </div>`
+    ]
     for (let item in snapshot) {
+      let imgPath = defaultBudgetType.filter(e => snapshot[item].type === e)
       let html = `
         <div class="budget-type__item" onclick="showAddModal('${snapshot[item].type}')">
             <img src="./assets/img/bin.jpg" alt="" class="delete-category" id="${item}">
             <div class="item-img-container">
-                <img src="${snapshot[item].imgPath}" alt="" class="item-img">
+                <img src="${imgPath.length > 0 ? "./assets/img/" + snapshot[item].type + '.png' :  "./assets/img/unavailable.png"}" alt="" class="item-img">
             </div>
             <h4 class="item-heading">${snapshot[item].type}</h4>
         </div>
@@ -95,22 +128,29 @@ function handleRenderCategory() {
       document.querySelector('.cancel-category').onclick = () => {
         document.querySelector('.modal-category-wrapper').classList.add('hidden')
         document.querySelector('#input-category-name').value = '';
-        document.querySelector('#input-img').value = '';
       }
       document.querySelector('.create-category').onclick = () => {
         let type = document.querySelector('#input-category-name');
-        let imgPath = document.querySelector('#input-img');
-        addCategory(type, imgPath);
+        addCategory(type);
       }
     })
     document.querySelectorAll('.delete-category').forEach(item => {
       item.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (confirm('Delete this type ?')) {
+        if (confirm('Warning: Delete this type will delete all data related to this type! This action can\'t be undone! Proceed?')) {
           const db = getDatabase();
-          const categoryRef = ref(db,`category/${e.target.id}`)
-          set(categoryRef, null)
-          handleRenderCategory();
+          get(child(ref(getDatabase()), 'category'))
+          .then((snapshot) => {
+            const categoryRef = ref(db,`category/${e.target.id}`)
+            const costRef = ref(db,`cost/${snapshot.val()[e.target.id].type}`)
+            const incomeRef = ref(db,`income/${snapshot.val()[e.target.id].type}`)
+            set(categoryRef, null)
+            set(costRef, null)
+            set(incomeRef, null)
+            handleRenderCategory();
+            totalBudget();
+            renderBudgetItemList();
+          })
         }
       })
     })
@@ -148,7 +188,7 @@ function renderBudgetItemList() {
           let db = ref(getDatabase())
           get(child(db, 'income/' + budgetIncome.id))
           .then(snapshot => {
-            handleRenderBudgetItemList(snapshot, 'income', categoryList, budgetIncome)
+            handleRenderBudgetItemList(snapshot, 'income', budgetIncome)
           })
         })
       })
@@ -176,7 +216,7 @@ function renderBudgetItemList() {
           let db = ref(getDatabase())
           get(child(db, 'cost/' + budgetCost.id))
           .then(snapshot => {
-            handleRenderBudgetItemList(snapshot, 'cost', categoryList, budgetCost)
+            handleRenderBudgetItemList(snapshot, 'cost', budgetCost)
           })
         })
       })
@@ -193,12 +233,12 @@ function handleRenderBudgetList(snapshot, categoryList, budgetType) {
       totalCategoryBudget += parseInt(snapshot.val()[category][item].money);
       date = snapshot.val()[category][item].date;
     }
-    let categoryImgPath = categoryList.filter(e => e.type === category)
+    let imgPath = defaultBudgetType.filter(e => category === e)
     let html = `
-      <li class="budget-${budgetType}__item" id = "${category}">
-          <img src="./assets/img/bin.jpg" class = "budget-${budgetType}__item-delete" alt=""  id="${category}">
+    <li class="budget-${budgetType}__item" id = "${category}">
+    <img src="./assets/img/bin.jpg" class = "budget-${budgetType}__item-delete" alt=""  id="${category}">
           <div class="${budgetType}-item__img">
-              <img src="${categoryImgPath.length > 0 ? categoryImgPath[0].imgPath : './assets/img/unavailable.png'}" alt="">
+            <img src="${imgPath.length > 0 ? "./assets/img/" + category + '.png' :  "./assets/img/unavailable.png"}" alt="" class="item-img">
           </div>
           <div class="${budgetType}-item__details">
               <h4 class="${budgetType}-item__heading">
@@ -214,22 +254,22 @@ function handleRenderBudgetList(snapshot, categoryList, budgetType) {
   document.querySelector(`.budget-${budgetType}__list`).innerHTML = htmls.join('')
 }
 
-function handleRenderBudgetItemList(snapshot, budgetType, categoryList, budgetItem) {
+function handleRenderBudgetItemList(snapshot, budgetType, budgetItem) {
   let htmls = [];
   let total = 0;
   for (let item in snapshot.val()) {
-    let categoryImgPath = categoryList.filter(e => e.type === budgetItem.id)
+    let categoryImgPath = defaultBudgetType.filter(e => e === budgetItem.id)
     total += parseInt(snapshot.val()[item].money);
     let html = `
     <li class="budget-item">
         <div class="${budgetType}-item__img">
-            <img src="${categoryImgPath.length > 0 ? categoryImgPath[0].imgPath : './assets/img/unavailable.png'}" alt="">
+            <img src="${categoryImgPath.length > 0 ? './assets/img/' + categoryImgPath[0] +'.png' : './assets/img/unavailable.png'}" alt="">
         </div>
         <div class="budget-content">
             <div class="budget-heading">
-                <span class="budget-name">${snapshot.val()[item].head}:</span>
+                <span class="budget-name">${snapshot.val()[item].head}</span>
                 <span class="budget-money">
-                    ${snapshot.val()[item].money}
+                  : ${snapshot.val()[item].money}$
                 </span> 
             </div>
             <p class="budget-description">${snapshot.val()[item].description}</p>
@@ -290,7 +330,7 @@ function handleChangeCategory() {
   const nextBtn = document.querySelector('.slider__btn-right');
   const newNextBtn = nextBtn.cloneNode(true);
   nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
-  let transformMax = Math.ceil((document.querySelectorAll('.budget-type__item').length + 1) / 5) * 100 - 100;
+  let transformMax = Math.ceil((document.querySelectorAll('.budget-type__item').length + 1) / 6) * 100 - 100;
   if (currentTransform <= -transformMax) {
     newNextBtn.disabled = true;
   } else {
@@ -322,7 +362,6 @@ function addBudget(budgetType, incomeType, head, description, money) {
   const budgetRef = push(budgetListRef);
   let date = new Date();
   let options = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' };
-
   set(budgetRef, {
     head: head,
     description: description,
@@ -331,12 +370,14 @@ function addBudget(budgetType, incomeType, head, description, money) {
   })
 }
 
-function addCategory(type, imgPath) {
+function addCategory(type) {
   let categoryDb = ref(getDatabase())
   get(child(categoryDb, 'category'))
   .then((snapshot) => {
     for (let item in snapshot.val()) {
-      if (snapshot.val()[item].type.toLowerCase() === type.value.toLowerCase())
+      if (defaultBudgetType.includes(type.value.toLowerCase().trim()))
+        return true;
+      else if (snapshot.val()[item].type.toLowerCase().trim() === type.value.toLowerCase().trim())
         return true;
     }
     return false;
@@ -347,15 +388,13 @@ function addCategory(type, imgPath) {
     } else {
       const categoryListRef = ref(db, 'category')
       const categoryRef = push(categoryListRef);
-      let truePath = "./assets/img/" + imgPath.value.substring(imgPath.value.lastIndexOf('\\') + 1);
-      if (type.value && imgPath.value) {
+      if (type.value) {
         set(categoryRef, {
           type: type.value,
-          imgPath: truePath,
         })
         .then(() => {
+          document.querySelector('.modal-category-wrapper').classList.add('hidden')
           type.value = '';
-          imgPath.value = ''
         })
         handleRenderCategory()
       } else {
@@ -367,17 +406,21 @@ function addCategory(type, imgPath) {
 
 document.querySelector('.confirm-btn').addEventListener('click', () => {
   let budgetType = document.querySelector('input[name="type"]:checked');
-  let incomeType = document.querySelector('#modal-add__heading').innerText.substring(document.querySelector('#modal-add__heading').innerText.lastIndexOf(' ') + 1)
+  let incomeType = document.querySelector('#modal-add__heading').innerText.substring(document.querySelector('#modal-add__heading').innerText.lastIndexOf(' ') + 1).toLowerCase()
   let head = document.querySelector('#input-heading');
   let description = document.querySelector('.input-description');
   let money = document.querySelector('#input-money');
-  if (validateItem(budgetType) && validateItem(head) && validateItem(description) && validateItem(money)) {
+  if (money <= 0) {
+    alert('Money have to greater than 0$')
+  }
+  else if (validateItem(budgetType) && validateItem(head) && validateItem(description) && validateItem(money)) {
     addBudget(budgetType.value, incomeType, head.value, description.value, money.value);
     document.querySelector('#modal-add__heading').innerText.substring(document.querySelector('#modal-add__heading').innerText.lastIndexOf(' ') + 1)
     document.querySelector('#input-heading').value = '';
     document.querySelector('#input-money').value = '';
     document.querySelector('.input-description').value = '';
     document.querySelector('input[name="type"]:checked').checked = false
+    document.querySelector('.modal-add-wrapper').classList.add('hidden');
     totalBudget();
     renderBudgetItemList();
   } else {
@@ -392,6 +435,11 @@ function validateItem(item) {
 }
 
 document.querySelector('.cancel-btn').addEventListener('click', () => {
+  document.querySelector('.modal-add-wrapper').classList.add('hidden');
+  document.querySelector('#input-heading').value = '';
+  document.querySelector('#input-money').value = '';
+  document.querySelector('.input-description').value = '';
+
   document.querySelector('.modal-add-wrapper').classList.add('hidden');
 })
 
