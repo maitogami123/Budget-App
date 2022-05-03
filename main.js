@@ -144,12 +144,15 @@ function handleRenderCategory() {
             const categoryRef = ref(db,`category/${e.target.id}`)
             const costRef = ref(db,`cost/${snapshot.val()[e.target.id].type}`)
             const incomeRef = ref(db,`income/${snapshot.val()[e.target.id].type}`)
-            set(categoryRef, null)
-            set(costRef, null)
-            set(incomeRef, null)
-            handleRenderCategory();
-            totalBudget();
-            renderBudgetItemList();
+            set(categoryRef, null).then(() => {
+              set(costRef, null).then(() => {
+                set(incomeRef, null).then(() => {
+                  handleRenderCategory();
+                  totalBudget();
+                  renderBudgetItemList();
+                })
+              })
+            })
           })
         }
       })
