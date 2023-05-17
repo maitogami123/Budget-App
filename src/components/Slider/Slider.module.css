@@ -1,0 +1,17 @@
+.slider {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  background-color: #e7f5f3;
+}
+
+
+.slider__budget-type, .budget-type__additional-item {
+  display: flex;
+  transition: all 0.2s ease;
+}
+
+.slider__budget-type-wrapper {
+  overflow: hidden;
+}

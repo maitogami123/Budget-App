@@ -1,0 +1,33 @@
+.budget-details {
+  margin: 0 40px;
+  margin-top: 40px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.budget-income, .budget-cost {
+  flex: 1 1 45%;
+}
+
+.budget-income__heading {
+  margin-bottom: 18px;
+  color: #0ea6a0;
+}
+.budget-income__list, .budget-cost__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 1 45%;
+}
+
+.budget-cost__heading {
+  margin-bottom: 18px;
+  color: #ab0363;
+}
+
+.budget-income__list, .budget-cost__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 1 45%;
+}

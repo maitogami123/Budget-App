@@ -1,0 +1,77 @@
+.budget-income__item, .budget-cost__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  max-width: 360px;
+  position: relative;
+}
+
+.budget-income__item-delete, .budget-cost__item-delete {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: -10%;
+  left: -2%;
+  display: none;
+}
+
+.income-item__img {
+  width: 80px;
+  height: 80px;
+  padding: 10px;
+  border: 3px solid #a4f4e9;
+  border-radius: 4px;
+}
+
+.income-item__img img {
+  display: block;
+  width: 100%;
+}
+
+.income-item__details {
+  display: flex;
+  gap: 5px;
+  flex-direction: column;
+}
+
+.income-item__heading {
+  color: #0ea6a0;
+  font-weight: 600;
+  font-size: 18px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 200px;
+}
+
+.income-item__money, .cost-item__money {
+  font-weight: 600;
+}
+
+.budget-income__item:hover > .budget-income__item-delete, .budget-income__item:hover > .budget-cost__item-delete, .budget-cost__item:hover > .budget-income__item-delete, .budget-cost__item:hover > .budget-cost__item-delete {
+  display: block;
+}
+
+.cost-item__img {
+  width: 80px;
+  height: 80px;
+  padding: 10px;
+  border: 3px solid #ffc2e6;
+  border-radius: 4px;
+}
+
+.cost-item__img img {
+  display: block;
+  width: 100%;
+}
+
+.cost-item__heading {
+  color: #ab0363;
+  font-weight: 600;
+  font-size: 18px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 200px;
+}

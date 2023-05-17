@@ -1,0 +1,29 @@
+.heading {
+  min-width: 120px;
+}
+
+.header {
+  margin-bottom: 4px;
+}
+
+.slider__btn-left, .slider__btn-right {
+  background-color: #fff;
+  border: 1px solid #03b4ea;
+  padding: 2px 4px;
+  border-radius: 25px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.slider__btn-left:disabled, .slider__btn-right:disabled,  
+.slider__btn-left:disabled:hover, .slider__btn-right:disabled:hover{
+  background-color: #ccc;
+  border: none;
+  cursor: default;
+  color: #aaa;
+}
+
+.slider__btn-left:hover, .slider__btn-right:hover {
+  color: #fff;
+  background-color: #03b4ea;
+}

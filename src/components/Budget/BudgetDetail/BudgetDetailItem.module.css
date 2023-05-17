@@ -1,0 +1,84 @@
+.budget-item {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.income-item__img {
+  width: 80px;
+  height: 80px;
+  padding: 10px;
+  border: 3px solid #a4f4e9;
+  border-radius: 4px;
+}
+
+.income-item__img img {
+  display: block;
+  width: 100%;
+}
+
+.budget-content {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.budget-item {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.total-money {
+  margin-top: 12px;
+  padding: 4px 8px;
+  background-color: #fff;
+  color: #03b4ea;
+  font-size: 24px;
+  border: 2px solid #03b4ea;
+  margin-right: 12px;
+}
+
+.budget-name {
+  display: inline-block;
+  font-size: 16px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 180px;
+}
+
+.budget-heading {
+  display: flex;
+  align-items: center;
+}
+
+.budget-money {
+  display: inline-block;
+  font-size: 16px;
+  font-weight: 600;
+  color: #f40691;
+}
+
+.budget-create-date {
+  color: #03b4ea;
+  font-style: italic;
+}
+
+.cost-item__img {
+  width: 80px;
+  height: 80px;
+  padding: 10px;
+  border: 3px solid #ffc2e6;
+  border-radius: 4px;
+}
+
+.cost-item__img img {
+  display: block;
+  width: 100%;
+}
