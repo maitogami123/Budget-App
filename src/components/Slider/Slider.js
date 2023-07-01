@@ -55,6 +55,7 @@ function Slider(props) {
           {categories.map((category) => (
             <SliderItem
               key={category.id}
+              id={category.id}
               type={category.type}
               img={category.img}
               onClick={handleShowModal.bind(null, category.type)}
